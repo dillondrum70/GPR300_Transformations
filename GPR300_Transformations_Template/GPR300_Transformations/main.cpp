@@ -45,7 +45,7 @@ float exampleSliderFloat = 0.0f;
 
 float orbitRadius = 3;
 float orbitSpeed = 2;
-float fov = 100;
+float fov = 1;
 float orthographicSize = 1;
 bool orthographic = false;
 
@@ -151,9 +151,38 @@ struct Camera
 		return glm::inverse(rotation) * glm::inverse(translation);
 	}
 
-	glm::mat4 GetProjectionMatrix()
+	glm::mat4 GetProjectionMatrixPerspective(float fov, float aspectRatio, float nearPlane, float farPlane)
 	{
-		
+		float c = glm::tan(fov / 2);
+
+		glm::mat4 proj = glm::mat4(1);
+
+		proj[0][0] = 1 / (aspectRatio * c);
+		proj[1][1] = 1 / c;
+		proj[2][2] = -((farPlane + nearPlane) / (farPlane - nearPlane));
+		proj[3][2] = -((2 * farPlane * nearPlane) / (farPlane - nearPlane));
+		proj[2][3] = -1;
+
+		return proj;
+	}
+
+	glm::mat4 GetProjectionMatrixOrtho(float height, float aspectRatio, float nearPlane, float farPlane)
+	{
+		float t = height / 2;
+		float b = -t;
+		float l = b * aspectRatio;
+		float r = t * aspectRatio;
+
+		glm::mat4 proj = glm::mat4(1);
+
+		proj[0][0] = 2 / (r - l);
+		proj[1][1] = 2 / (t - b);
+		proj[2][2] = -2 / (farPlane - nearPlane);
+		proj[3][0] = -(r + l) / (r - l);
+		proj[3][1] = -(t + b) / (t - b);
+		proj[3][2] = -(farPlane + nearPlane) / (farPlane - nearPlane);
+
+		return proj;
 	}
 };
 
@@ -205,6 +234,8 @@ int main() {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
+	srand(time(nullptr));
+
 	for (size_t i = 0; i < NUM_CUBES; i++)
 	{
 		Transform& trans = transforms[i];
@@ -230,23 +261,44 @@ int main() {
 		//Rotate camera
 		cam.UpdateEye(orbitSpeed, orbitRadius);
 
+		int width;
+		int height;
+		glfwGetWindowSize(window, &width, &height);
+		float aspectRatio = width / height;
+
+		//cache values so they are only calculated once per frame
+		glm::mat4 view = cam.GetViewMatrix();
+		glm::mat4 ortho = cam.GetProjectionMatrixOrtho(orthographicSize, aspectRatio, .001f, 100.0f);
+		glm::mat4 perspective = cam.GetProjectionMatrixPerspective((double)fov, aspectRatio, .001f, 100.f);
+
 		//Draw
 		shader.use();
 
 		for (size_t i = 0; i < NUM_CUBES; i++)
 		{
 			shader.setMat4("_Model", transforms[i].GetModelMatrix());
-			shader.setMat4("_View", cam.GetViewMatrix());
-			shader.setMat4("_Project", glm::perspective((double)fov, 1., .001, 100.));
+			shader.setMat4("_View", view);
+
+			if (orthographic)
+			{
+				shader.setMat4("_Project", ortho);
+			}
+			else
+			{
+				shader.setMat4("_Project", perspective);
+			}
+			
 			cubeMesh.draw();
 		}
 
 		//Draw UI
+		ImGui::SetNextWindowSize(ImVec2(0, 0));	//Size to fit content
 		ImGui::Begin("Settings");
 		ImGui::SliderFloat("Orbit Radius", &orbitRadius, 1.0f, 50.0f);
 		ImGui::SliderFloat("Orbit Speed", &orbitSpeed, 0.0f, 50.0f);
-		ImGui::SliderFloat("Field of View", &fov, 1.0f, 75.0f);
-		ImGui::SliderFloat("Orthographic Size", &orthographicSize, 1.0f, 2.0f);
+		ImGui::SliderFloat("Field of View", &fov, .5f, 3.0f);
+		ImGui::SliderFloat("Orthographic Size", &orthographicSize, 1.0f, 100.0f);
+		ImGui::Checkbox("Orthographic", &orthographic);
 		ImGui::End();
 
 		ImGui::Render();
