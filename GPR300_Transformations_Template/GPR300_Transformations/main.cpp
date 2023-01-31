@@ -114,13 +114,23 @@ struct Transform
 
 struct Camera
 {
-	glm::vec3 eye = glm::vec3(0, 0, 2);
+	glm::vec3 eye = glm::vec3(0, 0, 1);
 	glm::vec3 target = glm::vec3(0, 0, 0);
 	glm::vec3 worldUp = glm::vec3(0, 1, 0);
 
 	float fov;
 	float orthographicSize;
 	bool orthographic;
+
+	void UpdateEye(float orbitSpeed, float orbitRadius)
+	{
+		glm::vec3 forward = glm::normalize(target - eye);
+		glm::vec3 right = glm::normalize(glm::cross(forward, worldUp));
+
+		eye = glm::normalize(eye) + (right * orbitSpeed * deltaTime);
+		glm::vec3 diff = glm::normalize(glm::vec3(eye - target)) * orbitRadius;
+		eye = target + diff;
+	}
 
 	glm::mat4 GetViewMatrix()
 	{
@@ -217,6 +227,9 @@ int main() {
 		deltaTime = time - lastFrameTime;
 		lastFrameTime = time;
 
+		//Rotate camera
+		cam.UpdateEye(orbitSpeed, orbitRadius);
+
 		//Draw
 		shader.use();
 
@@ -224,14 +237,14 @@ int main() {
 		{
 			shader.setMat4("_Model", transforms[i].GetModelMatrix());
 			shader.setMat4("_View", cam.GetViewMatrix());
-			shader.setMat4("_Project", glm::perspective((double)fov, 1., .01, 10.));
+			shader.setMat4("_Project", glm::perspective((double)fov, 1., .001, 100.));
 			cubeMesh.draw();
 		}
 
 		//Draw UI
 		ImGui::Begin("Settings");
-		ImGui::SliderFloat("Orbit Radius", &orbitRadius, 0.0f, 10.0f);
-		ImGui::SliderFloat("Orbit Speed", &orbitSpeed, 0.0f, 10.0f);
+		ImGui::SliderFloat("Orbit Radius", &orbitRadius, 1.0f, 50.0f);
+		ImGui::SliderFloat("Orbit Speed", &orbitSpeed, 0.0f, 50.0f);
 		ImGui::SliderFloat("Field of View", &fov, 1.0f, 75.0f);
 		ImGui::SliderFloat("Orthographic Size", &orthographicSize, 1.0f, 2.0f);
 		ImGui::End();
