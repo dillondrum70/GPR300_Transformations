@@ -126,9 +126,9 @@ struct Camera
 	{
 		glm::mat4 rotation = glm::mat4(1);
 
-		glm::vec3 forward = target - eye;
-		glm::vec3 right = glm::cross(forward, worldUp);
-		glm::vec3 up = glm::cross(right, forward);
+		glm::vec3 forward = glm::normalize(target - eye);
+		glm::vec3 right = glm::normalize(glm::cross(forward, worldUp));
+		glm::vec3 up = glm::normalize(glm::cross(right, forward));
 		
 		rotation[0] = glm::vec4(right, 0);
 		rotation[1] = glm::vec4(up, 0);
@@ -224,7 +224,7 @@ int main() {
 		{
 			shader.setMat4("_Model", transforms[i].GetModelMatrix());
 			shader.setMat4("_View", cam.GetViewMatrix());
-			shader.setMat4("_Project", glm::perspective(90., 1., .01, 10.));
+			shader.setMat4("_Project", glm::perspective((double)fov, 1., .01, 10.));
 			cubeMesh.draw();
 		}
 
@@ -232,7 +232,7 @@ int main() {
 		ImGui::Begin("Settings");
 		ImGui::SliderFloat("Orbit Radius", &orbitRadius, 0.0f, 10.0f);
 		ImGui::SliderFloat("Orbit Speed", &orbitSpeed, 0.0f, 10.0f);
-		ImGui::SliderFloat("Field of View", &fov, 50.0f, 75.0f);
+		ImGui::SliderFloat("Field of View", &fov, 1.0f, 75.0f);
 		ImGui::SliderFloat("Orthographic Size", &orthographicSize, 1.0f, 2.0f);
 		ImGui::End();
 
