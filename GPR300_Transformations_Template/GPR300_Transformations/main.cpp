@@ -43,11 +43,15 @@ const float MOUSE_SENSITIVITY = 0.1f;
 glm::vec3 bgColor = glm::vec3(0);
 float exampleSliderFloat = 0.0f;
 
-float orbitRadius = 3;
+float orbitRadius = 10;
 float orbitSpeed = 2;
 float fov = 1;
 float orthographicSize = 1;
 bool orthographic = false;
+
+int randPosRange = 10;
+int randRotRange = 360;
+int randScaleRange = 3;
 
 
 namespace Math3D
@@ -106,9 +110,40 @@ struct Transform
 
 		//TODO
 		//Apply transformations
-		modelMatrix = Math3D::Scale(scale) * Math3D::Rotate(rotation) * Math3D::Translate(position) * modelMatrix;
+		modelMatrix = Math3D::Translate(position) * Math3D::Rotate(rotation) * Math3D::Scale(scale) * modelMatrix;
 
 		return modelMatrix;
+	}
+
+	void CreateImGui(int pushId)
+	{
+		ImGui::PushID(pushId);
+
+		float pos[3] = { position.x, position.y, position.z };
+		if (ImGui::DragFloat3("Position", pos, .01, -40.0f, 40.0f))
+		{
+			position.x = pos[0];
+			position.y = pos[1];
+			position.z = pos[2];
+		}
+
+		float rot[3] = { rotation.x, rotation.y, rotation.z };
+		if (ImGui::DragFloat3("Rotation", rot, .01, 0.0f, 360.0f))
+		{
+			rotation.x = rot[0];
+			rotation.y = rot[1];
+			rotation.z = rot[2];
+		}
+
+		float s[3] = { scale.x, scale.y, scale.z };
+		if (ImGui::DragFloat3("Scale", s, .01, 0.0f, 360.0f))
+		{
+			scale.x = s[0];
+			scale.y = s[1];
+			scale.z = s[2];
+		}
+
+		ImGui::PopID();
 	}
 };
 
@@ -234,14 +269,15 @@ int main() {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
+	//Seeding random number generator9
 	srand(time(nullptr));
 
 	for (size_t i = 0; i < NUM_CUBES; i++)
 	{
 		Transform& trans = transforms[i];
-		trans.position = glm::vec3((rand() % 2) - 1, (rand() % 2) - 1, (rand() % 2) - 1);
-		trans.rotation = glm::vec3(rand() % 360, rand() % 360, rand() % 360);
-		trans.scale = glm::vec3((rand() % 3) + .2f);
+		trans.position = glm::vec3((rand() % randPosRange) - (randPosRange / 2), (rand() % randPosRange) - (randPosRange / 2), (rand() % randPosRange) - (randPosRange / 2));
+		trans.rotation = glm::vec3(rand() % randRotRange, rand() % randRotRange, rand() % randRotRange);
+		trans.scale = glm::vec3((rand() % randScaleRange) + .2f);
 	}
 
 	Camera cam;
@@ -299,6 +335,15 @@ int main() {
 		ImGui::SliderFloat("Field of View", &fov, .5f, 3.0f);
 		ImGui::SliderFloat("Orthographic Size", &orthographicSize, 1.0f, 100.0f);
 		ImGui::Checkbox("Orthographic", &orthographic);
+		ImGui::End();
+
+		ImGui::SetNextWindowSize(ImVec2(0, 0));	//Size to fit content
+		ImGui::Begin("Transforms");
+		for (size_t i = 0; i < NUM_CUBES; i++)
+		{
+			ImGui::Text(("Cube " + std::to_string(i)).c_str());
+			transforms[i].CreateImGui(i);
+		}
 		ImGui::End();
 
 		ImGui::Render();
