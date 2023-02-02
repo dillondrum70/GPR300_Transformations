@@ -110,7 +110,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>GLEW_STATIC;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)vendor\GLFW\include;$(SolutionDir)vendor\GLEW\include;$(SolutionDir)vendor\stbi;$(SolutionDir)vendor\glm\include;$(SolutionDir)vendor\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)vendor\GLFW\include;$(SolutionDir)vendor\GLEW\include;$(SolutionDir)vendor\stbi;$(SolutionDir)vendor\glm\include;$(SolutionDir)GPR300_Transformations\imgui;$(SolutionDir)GPR300_Transformations\Source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -163,6 +163,9 @@
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="EW\ShapeGen.h" />
     <ClInclude Include="EW\Shader.h" />
+    <ClInclude Include="Source\Camera.h" />
+    <ClInclude Include="Source\Math3D.h" />
+    <ClInclude Include="Source\Transform.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
