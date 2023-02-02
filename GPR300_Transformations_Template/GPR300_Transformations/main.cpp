@@ -304,8 +304,17 @@ int main() {
 
 		//cache values so they are only calculated once per frame
 		glm::mat4 view = cam.GetViewMatrix();
-		glm::mat4 ortho = cam.GetProjectionMatrixOrtho(orthographicSize, aspectRatio, .001f, 100.0f);
-		glm::mat4 perspective = cam.GetProjectionMatrixPerspective((double)fov, aspectRatio, .001f, 100.f);
+
+		glm::mat4 project = glm::mat4(1);
+
+		if (orthographic)
+		{
+			project = cam.GetProjectionMatrixOrtho(orthographicSize, aspectRatio, .001f, 100.0f);
+		}
+		else
+		{
+			project = cam.GetProjectionMatrixPerspective((double)fov, aspectRatio, .001f, 100.f);
+		}
 
 		//Draw
 		shader.use();
@@ -315,14 +324,7 @@ int main() {
 			shader.setMat4("_Model", transforms[i].GetModelMatrix());
 			shader.setMat4("_View", view);
 
-			if (orthographic)
-			{
-				shader.setMat4("_Project", ortho);
-			}
-			else
-			{
-				shader.setMat4("_Project", perspective);
-			}
+			shader.setMat4("_Project", project);
 			
 			cubeMesh.draw();
 		}
