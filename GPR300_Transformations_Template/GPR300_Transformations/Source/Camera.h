@@ -9,9 +9,9 @@ struct Camera
 	glm::vec3 target = glm::vec3(0, 0, 0);
 	glm::vec3 worldUp = glm::vec3(0, 1, 0);
 
-	float fov;
-	float orthographicSize;
-	bool orthographic;
+	float fov = 1;
+	float orthographicSize = 1;
+	bool orthographic = false;
 
 	void UpdateEye(float orbitSpeed, float orbitRadius, float deltaTime)
 	{
@@ -74,6 +74,16 @@ struct Camera
 		proj[3][2] = -(farPlane + nearPlane) / (farPlane - nearPlane);
 
 		return proj;
+	}
+
+	glm::mat4 GetProjectionMatrix(float aspectRatio, float nearPlane, float farPlane)
+	{
+		if (orthographic)
+		{
+			return GetProjectionMatrixOrtho(orthographicSize, aspectRatio, nearPlane, farPlane);
+		}
+
+		return GetProjectionMatrixPerspective(fov, aspectRatio, nearPlane, farPlane);
 	}
 };
 

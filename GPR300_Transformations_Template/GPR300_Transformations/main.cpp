@@ -48,9 +48,6 @@ float exampleSliderFloat = 0.0f;
 
 float orbitRadius = 10;
 float orbitSpeed = 2;
-float fov = 1;
-float orthographicSize = 1;
-bool orthographic = false;
 
 int randPosRange = 10;
 int randRotRange = 360;
@@ -141,16 +138,7 @@ int main() {
 		//cache values so they are only calculated once per frame
 		glm::mat4 view = cam.GetViewMatrix();
 
-		glm::mat4 project = glm::mat4(1);
-
-		if (orthographic)
-		{
-			project = cam.GetProjectionMatrixOrtho(orthographicSize, aspectRatio, .001f, 100.0f);
-		}
-		else
-		{
-			project = cam.GetProjectionMatrixPerspective((double)fov, aspectRatio, .001f, 100.f);
-		}
+		glm::mat4 project = cam.GetProjectionMatrix(aspectRatio, .001f, 100.0f);
 
 		//Draw
 		shader.use();
@@ -170,9 +158,9 @@ int main() {
 		ImGui::Begin("Settings");
 		ImGui::SliderFloat("Orbit Radius", &orbitRadius, 1.0f, 50.0f);
 		ImGui::SliderFloat("Orbit Speed", &orbitSpeed, 0.0f, 50.0f);
-		ImGui::SliderFloat("Field of View", &fov, .5f, 3.0f);
-		ImGui::SliderFloat("Orthographic Size", &orthographicSize, 1.0f, 100.0f);
-		ImGui::Checkbox("Orthographic", &orthographic);
+		ImGui::SliderFloat("Field of View", &cam.fov, .5f, 3.0f);
+		ImGui::SliderFloat("Orthographic Size", &cam.orthographicSize, 1.0f, 100.0f);
+		ImGui::Checkbox("Orthographic", &cam.orthographic);
 		ImGui::End();
 
 		ImGui::SetNextWindowSize(ImVec2(0, 0));	//Size to fit content
